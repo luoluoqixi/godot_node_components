@@ -1,0 +1,52 @@
+using Godot;
+
+namespace GodotNodeComponents;
+
+[Tool]
+public partial class NodeComponents : Node, IComponents
+{
+    public ComponentsController Components { get; set; }
+
+    public NodeComponents()
+    {
+        if (Components == null)
+            Components = new ComponentsController();
+        Components.Initialize(this);
+    }
+
+    public override void _EnterTree()
+    {
+        Components.EnterTree();
+    }
+
+    public override void _ExitTree()
+    {
+        Components.ExitTree();
+    }
+
+    public override void _Ready()
+    {
+        Components.Ready();
+    }
+
+    public override void _Process(double delta)
+    {
+        Components.Process(delta);
+    }
+
+    protected override void Dispose(bool disposing)
+    {
+        Components.Dispose();
+        Components = null;
+    }
+
+    public void SaveComponents(string[] data)
+    {
+        this.DefaultSaveComponents(data);
+    }
+
+    public string[] LoadComponents()
+    {
+        return this.DefaultLoadComponents();
+    }
+}

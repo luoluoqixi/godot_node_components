@@ -6,7 +6,7 @@ using Godot;
 
 namespace GodotNodeComponents.Editor;
 
-public class CommonAttributeUtility
+internal static class CommonAttributeUtility
 {
     private static Dictionary<Type, Dictionary<Type, HashSet<string>>> _cachedHasAttributes = [];
 
@@ -46,6 +46,37 @@ public class CommonAttributeUtility
         return result;
     }
 
+    private static MemberInfo _GetPropertyType(Type type, Type propertyType)
+    {
+        var fields = type.GetFields(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
+        var properties = type.GetProperties(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
+
+        foreach (var field in fields)
+        {
+            if (field.FieldType.IsSubclassOf(propertyType) || field.FieldType == propertyType)
+            {
+                return field;
+            }
+        }
+        foreach (var prop in properties)
+        {
+            if (prop.PropertyType.IsSubclassOf(propertyType) || prop.PropertyType == propertyType)
+            {
+                return prop;
+            }
+        }
+
+        var baseType = type.BaseType;
+        if (baseType != null && baseType != typeof(object) && baseType != typeof(Node))
+        {
+            var t = _GetPropertyType(baseType, propertyType);
+            if (t != null)
+                return t;
+        }
+
+        return null;
+    }
+
     public static bool HasAttribute<T>(GodotObject obj, string propertyName) where T : Attribute
     {
         if (obj == null) return false;
@@ -67,6 +98,13 @@ public class CommonAttributeUtility
             attributeDic[type] = propsWithAttr;
             return propsWithAttr.Contains(propertyName);
         }
+    }
+
+    public static PropertyInfo GetProperty(GodotObject obj, string propertyName)
+    {
+        if (obj == null) return null;
+        var type = obj.GetType();
+        return type.GetProperty(propertyName, BindingFlags.Public | BindingFlags.Instance | BindingFlags.FlattenHierarchy);
     }
 }
 #endif
