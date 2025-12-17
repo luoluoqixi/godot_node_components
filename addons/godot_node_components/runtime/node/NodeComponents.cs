@@ -34,6 +34,11 @@ public partial class NodeComponents : Node, IComponents
         Components.Process(delta);
     }
 
+    public override void _PhysicsProcess(double delta)
+    {
+        Components.PhysicsProcess(delta);
+    }
+
     protected override void Dispose(bool disposing)
     {
         Components.Dispose();
@@ -42,11 +47,11 @@ public partial class NodeComponents : Node, IComponents
 
     public void SaveComponents(string[] data)
     {
-        this.DefaultSaveComponents(data);
+        this.SaveComponentsToMeta(data);
     }
 
     public string[] LoadComponents()
     {
-        return this.DefaultLoadComponents();
+        return this.LoadComponentsFromMeta();
     }
 }

@@ -10,6 +10,11 @@ public partial class CustomNodeComponents : NodeComponents
     public override void _Ready()
     {
         base._Ready();
-        GD.Print("NodeTest is ready.");
+
+        var components = Components.GetComponents<BaseComponent>();
+        foreach (var component in components)
+        {
+            GD.Print($"Component {component.Name}: {component.GetType().Name}");
+        }
     }
 }

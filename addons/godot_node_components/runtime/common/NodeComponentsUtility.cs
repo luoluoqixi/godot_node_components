@@ -7,12 +7,12 @@ namespace GodotNodeComponents;
 
 public static class NodeComponentsUtility
 {
-    public static void DefaultSaveComponents(this Node node, string[] data)
+    public static void SaveComponentsToMeta(this Node node, string[] data)
     {
         node.SetMeta(ComponentsConfig.ComponentsMetaKey, data);
     }
 
-    public static string[] DefaultLoadComponents(this Node node)
+    public static string[] LoadComponentsFromMeta(this Node node)
     {
         if (!node.HasMeta(ComponentsConfig.ComponentsMetaKey))
             return null;

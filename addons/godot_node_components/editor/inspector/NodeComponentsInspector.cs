@@ -12,12 +12,22 @@ public partial class NodeComponentsInspector : EditorInspectorPlugin
 
     private void _DrawComponent(VBoxContainer section, ComponentsController componentsController, int index)
     {
-        var componentsCountLabel = new Label
-        {
-            Text = "Component: " + index,
-            HorizontalAlignment = HorizontalAlignment.Left,
-        };
-        section.AddChild(componentsCountLabel);
+        var component = componentsController.GetComponentIndex(index);
+        var componentType = component?.GetType();
+        var typeFullName = componentType == null ? "" : componentType.FullName;
+        var typeName = componentType == null ? "Null" : componentType.Name;
+
+
+        var path = componentsController.Owner.GetPath();
+        var saveKey = $"{path}/node_components/component_{index}_{typeFullName}";
+        // var componentsCountLabel = new Label
+        // {
+        //     Text = "Component: " + index,
+        //     HorizontalAlignment = HorizontalAlignment.Left,
+        // };
+        var group = EditorGUIUtility.DrawCollapsibleGroup(typeName, 1, saveKey);
+
+        section.AddChild(group);
     }
 
     private void _DrawNodeComponentsUI(GodotObject obj)
@@ -31,35 +41,8 @@ public partial class NodeComponentsInspector : EditorInspectorPlugin
 
         var section = new VBoxContainer();
         {
-            var titleContainer = new PanelContainer();
-            titleContainer.AddThemeStyleboxOverride("panel", EditorThemeUtility.GetStylebox("bg", "EditorInspectorCategory"));
-            {
-                var titleHbox = new HBoxContainer();
-                titleHbox.Alignment = BoxContainer.AlignmentMode.Center;
-                {
-                    var titleIcon = new TextureRect();
-                    titleIcon.Texture = EditorThemeUtility.GetEditorIcon("Node");
-                    titleIcon.StretchMode = TextureRect.StretchModeEnum.KeepAspectCentered;
-                    titleHbox.AddChild(titleIcon);
-                }
-                {
-                    var titleLabel = new Label
-                    {
-                        Text = "Node Components",
-                        HorizontalAlignment = HorizontalAlignment.Center,
-                        LabelSettings = new LabelSettings
-                        {
-                            Font = EditorThemeUtility.GetFont("bold", "EditorFonts"),
-                            FontSize = EditorThemeUtility.GetFontSize("bold_size", "EditorFonts"),
-                            FontColor = EditorThemeUtility.GetColor("font_color", "Tree"),
-                        }
-                    };
-                    titleHbox.AddChild(titleLabel);
-                }
-                titleContainer.AddChild(titleHbox);
-            }
-
-            section.AddChild(titleContainer);
+            var header = EditorGUIUtility.DrawHeaderContainer("Node Components");
+            section.AddChild(header);
         }
 
         {
@@ -80,11 +63,8 @@ public partial class NodeComponentsInspector : EditorInspectorPlugin
         }
 
         {
-            var addComponent = new Button();
-            addComponent.SizeFlagsHorizontal = Control.SizeFlags.ShrinkCenter;
-            addComponent.Text = "Add Component";
-            addComponent.Icon = EditorThemeUtility.GetEditorIcon("Add");
-            addComponent.Pressed += () => _OnAddComponentPressed(componentsController);
+            var addIcon = EditorThemeUtility.GetEditorIcon("Add");
+            var addComponent = EditorGUIUtility.DrawButton("Add Component", addIcon, () => _OnAddComponentPressed(componentsController));
             section.AddChild(addComponent);
         }
 
