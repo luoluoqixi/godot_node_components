@@ -6,7 +6,7 @@ namespace GodotNodeComponents.Editor;
 
 internal static class EditorGUIUtility
 {
-    public static VBoxContainer DrawCollapsibleGroup(string title, int level = 1, string savePath = null)
+    public static VBoxContainer DrawCollapsibleGroup(string title, int level = 1, PopupMenu contextMenu = null, string savePath = null)
     {
         var group = new VBoxContainer();
 
@@ -46,6 +46,20 @@ internal static class EditorGUIUtility
             ? EditorThemeUtility.GetIcon("arrow", "Tree")
             : EditorThemeUtility.GetIcon("arrow_collapsed", "Tree");
         };
+
+        if (contextMenu != null)
+        {
+            headerButton.GuiInput += (e) =>
+            {
+                if (e is InputEventMouseButton mouseEvent && mouseEvent.ButtonIndex == MouseButton.Right && mouseEvent.Pressed)
+                {
+                    contextMenu.Position = (Vector2I)(headerButton.GetScreenPosition() + headerButton.GetLocalMousePosition());
+                    contextMenu.Popup();
+                }
+            };
+
+            headerButton.AddChild(contextMenu);
+        }
         return group;
     }
 

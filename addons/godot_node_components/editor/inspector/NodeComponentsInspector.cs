@@ -26,8 +26,17 @@ public partial class NodeComponentsInspector : EditorInspectorPlugin
         //     Text = "Component: " + index,
         //     HorizontalAlignment = HorizontalAlignment.Left,
         // };
-        var group = EditorGUIUtility.DrawCollapsibleGroup(typeName, 1, saveKey);
 
+        var popup = new PopupMenu();
+        popup.AddItem("Reset", 0);
+        popup.AddSeparator();
+        popup.AddItem("Remove Component", 1);
+        popup.AddItem("Move Up", 2);
+        popup.AddItem("Move Down", 3);
+
+        popup.IdPressed += _ContextMeenu_IdPressed;
+
+        var group = EditorGUIUtility.DrawCollapsibleGroup(typeName, 1, popup, saveKey);
         section.AddChild(group);
     }
 
@@ -74,6 +83,11 @@ public partial class NodeComponentsInspector : EditorInspectorPlugin
         }
 
         AddCustomControl(section);
+    }
+
+    private void _ContextMeenu_IdPressed(long id)
+    {
+        GD.Print("Context menu item pressed: " + id);
     }
 
     private void _OnAddComponentPressed()

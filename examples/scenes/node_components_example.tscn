@@ -7,7 +7,7 @@
 
 [node name="NodeComponents" type="Node" parent="." unique_id=702155791]
 script = ExtResource("1_oa1gj")
-metadata/node_components = PackedStringArray("GodotNodeComponents.SimpleComponent|{\"Enabled\":true}", "GodotNodeComponents.SimpleComponent|{\"Enabled\":true}", "GodotNodeComponents.SimpleComponent|{\"Enabled\":true}", "GodotNodeComponents.SimpleComponent|{\"Enabled\":true}", "GodotNodeComponents.SimpleComponent|{\"Enabled\":true}")
+metadata/node_components = PackedStringArray("GodotNodeComponents.SimpleComponent|{\"Enabled\":true}", "GodotNodeComponents.SimpleComponent|{\"Enabled\":true}", "GodotNodeComponents.SimpleComponent|{\"Enabled\":true}", "GodotNodeComponents.SimpleComponent|{\"Enabled\":true}", "GodotNodeComponents.SimpleComponent|{\"Enabled\":true}", "GodotNodeComponents.SimpleComponent|{\"Enabled\":true}")
 
 [node name="CustomNodeComponents" type="Node" parent="." unique_id=660824456]
 script = ExtResource("1_1y7vx")
