@@ -5,6 +5,8 @@ namespace GodotNodeComponents.Editor;
 
 public partial class NodeComponentsInspector : EditorInspectorPlugin
 {
+    private GodotObject currentObject;
+
     public override bool _CanHandle(GodotObject @object)
     {
         return typeof(IComponents).IsAssignableFrom(@object.GetType());
@@ -16,7 +18,6 @@ public partial class NodeComponentsInspector : EditorInspectorPlugin
         var componentType = component?.GetType();
         var typeFullName = componentType == null ? "" : componentType.FullName;
         var typeName = componentType == null ? "Null" : componentType.Name;
-
 
         var path = componentsController.Owner.GetPath();
         var saveKey = $"{path}/node_components/component_{index}_{typeFullName}";
@@ -30,11 +31,15 @@ public partial class NodeComponentsInspector : EditorInspectorPlugin
         section.AddChild(group);
     }
 
-    private void _DrawNodeComponentsUI(GodotObject obj)
+    public override void _ParseBegin(GodotObject @object)
     {
-        if (obj is not IComponents) return;
+        base._ParseBegin(@object);
 
-        var componentsInterface = obj as IComponents;
+        if (@object is not IComponents) return;
+
+        currentObject = @object;
+
+        var componentsInterface = @object as IComponents;
         var componentsController = componentsInterface.Components;
 
         if (componentsController == null) return;
@@ -49,12 +54,12 @@ public partial class NodeComponentsInspector : EditorInspectorPlugin
             // Components
             var componentCount = componentsController.Count;
 
-            // var componentsCountLabel = new Label
-            // {
-            //     Text = "Count: " + componentCount,
-            //     HorizontalAlignment = HorizontalAlignment.Left,
-            // };
-            // section.AddChild(componentsCountLabel);
+            var componentsCountLabel = new Label
+            {
+                Text = "Count: " + componentCount,
+                HorizontalAlignment = HorizontalAlignment.Left,
+            };
+            section.AddChild(componentsCountLabel);
 
             for (int i = 0; i < componentCount; i++)
             {
@@ -64,27 +69,63 @@ public partial class NodeComponentsInspector : EditorInspectorPlugin
 
         {
             var addIcon = EditorThemeUtility.GetEditorIcon("Add");
-            var addComponent = EditorGUIUtility.DrawButton("Add Component", addIcon, () => _OnAddComponentPressed(componentsController));
+            var addComponent = EditorGUIUtility.DrawButton("Add Component", addIcon, _OnAddComponentPressed);
             section.AddChild(addComponent);
         }
 
         AddCustomControl(section);
     }
 
-    public override void _ParseBegin(GodotObject @object)
+    private void _OnAddComponentPressed()
     {
-        base._ParseBegin(@object);
-        _DrawNodeComponentsUI(@object);
-    }
+        if (currentObject == null) return;
+        if (currentObject is not IComponents) return;
 
-    private void _OnAddComponentPressed(ComponentsController componentsController)
-    {
-        componentsController.AddComponent<SimpleComponent>();
-        componentsController.ApplyComponents();
-        if (componentsController.Owner is Node node)
+        var componentsController = (currentObject as IComponents).Components;
+        if (componentsController == null) return;
+
+        var node = componentsController.Owner;
+        if (node == null) return;
+        if (!IsInstanceValid(node)) return;
+
+        var undoRedo = EditorGUIUtility.GetUndoRedo();
+        if (undoRedo == null) return;
+
+        var componentType = typeof(SimpleComponent);
+        if (componentType == null) return;
+
+        string nodeName = node.Name;
+        string componentTypeName = componentType.Name;
+
+        var oldData = componentsController.GetComponentsToData();
+        undoRedo.CreateAction("Add Component " + nodeName + ": " + componentTypeName);
+
+        // https://github.com/godotengine/godot/issues/90430
+        var command = new UndoRedoCommand();
+        command.AddDoMethod(() =>
         {
+            // GD.PrintErr("Add Component");
+            if (componentsController == null) return;
+            if (node == null) return;
+            if (!IsInstanceValid(node)) return;
+
+            componentsController.AddComponent(componentType);
+            componentsController.ApplyComponents();
             node.NotifyPropertyListChanged();
-        }
+        });
+        command.AddUndoMethod(() =>
+        {
+            // GD.PrintErr("Revert Component");
+            if (componentsController == null) return;
+            if (node == null) return;
+            if (!IsInstanceValid(node)) return;
+
+            componentsController.RevertComponentsFromData(oldData);
+            componentsController.ApplyComponents();
+            node.NotifyPropertyListChanged();
+        });
+        command.AddToUndoRedo(undoRedo);
+        undoRedo.CommitAction();
     }
 }
 #endif

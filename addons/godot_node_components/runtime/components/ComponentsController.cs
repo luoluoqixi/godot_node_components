@@ -5,9 +5,8 @@ using Godot;
 
 namespace GodotNodeComponents;
 
-public class ComponentsController : IDisposable
+public partial class ComponentsController : IDisposable
 {
-    private bool _initialized = false;
     private List<BaseComponent> _components;
 
     private IComponents _componentsInterface;
@@ -21,11 +20,11 @@ public class ComponentsController : IDisposable
     {
         _owner = owner;
         _componentsInterface = owner;
+        _InitComponents();
     }
 
     public void EnterTree()
     {
-        _initialized = true;
         _InitComponents();
         if (Engine.IsEditorHint())
         {
@@ -59,13 +58,9 @@ public class ComponentsController : IDisposable
 
     public void Process(double delta)
     {
+        // GD.Print("ComponentsController Process ", _components?.Count);
         if (Engine.IsEditorHint())
         {
-            if (!_initialized)
-            {
-                _initialized = true;
-                _InitComponents();
-            }
             _EditorProcess(delta);
             return;
         }
@@ -82,6 +77,13 @@ public class ComponentsController : IDisposable
         }
         _FixedUpdateComponents(delta);
         _PhysicsProcess(delta);
+    }
+
+    public void Dispose()
+    {
+        _components = null;
+        _componentsInterface = null;
+        _owner = null;
     }
 
     public virtual void _EnterTree() { }
@@ -103,11 +105,6 @@ public class ComponentsController : IDisposable
     public virtual void _PhysicsProcess(double delta) { }
 
     public virtual void _EditorPhysicsProcess(double delta) { }
-
-    public void Dispose()
-    {
-
-    }
 
     public T AddComponent<T>()
         where T : BaseComponent, new()
@@ -168,7 +165,7 @@ public class ComponentsController : IDisposable
         where T : BaseComponent
     {
         if (_components == null)
-            return null;
+            return [];
         var result = new List<T>();
         foreach (var component in _components)
         {
@@ -183,7 +180,7 @@ public class ComponentsController : IDisposable
     public BaseComponent[] GetComponents(Type type)
     {
         if (_components == null)
-            return null;
+            return [];
         var result = new List<BaseComponent>();
         foreach (var component in _components)
         {
@@ -295,6 +292,17 @@ public class ComponentsController : IDisposable
         _componentsInterface.SaveComponents(data);
     }
 
+    internal string[] GetComponentsToData()
+    {
+        var data = _SaveComponentsToData();
+        return data;
+    }
+
+    internal void RevertComponentsFromData(string[] data)
+    {
+        _LoadComponentsFromData(data, false);
+    }
+
     protected void _OnComponentCreate(BaseComponent component)
     {
         component._SetOwner(_owner);
@@ -336,7 +344,7 @@ public class ComponentsController : IDisposable
         return data;
     }
 
-    protected virtual void _LoadComponentsFromData(string[] data)
+    protected virtual void _LoadComponentsFromData(string[] data, bool invokeCreateEvent = true)
     {
         if (data == null)
         {
@@ -354,7 +362,10 @@ public class ComponentsController : IDisposable
                 _components.Add(component);
                 if (component != null)
                 {
-                    _OnComponentCreate(component);
+                    if (invokeCreateEvent)
+                    {
+                        _OnComponentCreate(component);
+                    }
                 }
             }
             catch (Exception e)

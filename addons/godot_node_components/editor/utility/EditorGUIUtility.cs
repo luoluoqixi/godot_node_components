@@ -19,20 +19,17 @@ internal static class EditorGUIUtility
         headerButton.Alignment = HorizontalAlignment.Left;
         headerButton.SizeFlagsHorizontal = Control.SizeFlags.ExpandFill;
         headerButton.AddThemeFontOverride("font", EditorThemeUtility.GetFont("bold", "EditorFonts"));
-        // GD.Print(EditorThemeUtility.GetFontSize("bold_size", "EditorFonts"));
-        headerButton.AddThemeFontSizeOverride("font_size", 28);
+        var boldSize = EditorThemeUtility.GetFontSize("bold_size", "EditorFonts");
+        headerButton.AddThemeFontSizeOverride("font_size", boldSize);
+        var styleBox = new StyleBoxFlat();
+        headerButton.AddThemeStyleboxOverride("normal", styleBox);
 
-        var updateHeader = (string title, int level) =>
-        {
-            headerButton.Icon = expanded
-                ? EditorThemeUtility.GetIcon("arrow", "Tree")
-                : EditorThemeUtility.GetIcon("arrow_collapsed", "Tree");
+        headerButton.Icon = expanded
+            ? EditorThemeUtility.GetIcon("arrow", "Tree")
+            : EditorThemeUtility.GetIcon("arrow_collapsed", "Tree");
 
-            string indent = new string(' ', (level - 1) * 2);
-            headerButton.Text = $"{indent}{title}";
-        };
-
-        updateHeader(title, level);
+        string indent = new string(' ', (level - 1) * 2);
+        headerButton.Text = $"{indent}{title}";
 
         group.AddChild(headerButton);
 
@@ -40,14 +37,14 @@ internal static class EditorGUIUtility
         content.Visible = expanded;
         group.AddChild(content);
 
-        var styleBox = new StyleBoxFlat();
-        headerButton.AddThemeStyleboxOverride("normal", styleBox);
-
         headerButton.Toggled += (pressed) =>
         {
+            if (content == null) return;
             expanded = pressed;
             content.Visible = expanded;
-            updateHeader(title, level);
+            headerButton.Icon = expanded
+            ? EditorThemeUtility.GetIcon("arrow", "Tree")
+            : EditorThemeUtility.GetIcon("arrow_collapsed", "Tree");
         };
         return group;
     }
@@ -98,6 +95,15 @@ internal static class EditorGUIUtility
             addComponent.Pressed += onPressed;
         }
         return addComponent;
+    }
+
+    public static UndoRedo GetUndoRedo()
+    {
+        return NodeComponentsPlugin.UndoRedo;
+    }
+    public static void MarkSceneAsUnsaved()
+    {
+        EditorInterface.Singleton.MarkSceneAsUnsaved();
     }
 }
 #endif
