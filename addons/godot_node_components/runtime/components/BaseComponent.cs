@@ -1,13 +1,19 @@
+using System.Text.Json.Serialization;
 using Godot;
 
 namespace GodotNodeComponents;
 
 public abstract class BaseComponent
 {
+    [JsonIgnore]
     public string Name => _owner.Name;
+    [JsonIgnore]
     private Node _owner;
+    [JsonIgnore]
     public Node Owner => _owner;
+    [JsonIgnore]
     private bool _enabled = true;
+    [JsonIgnore]
     public bool Enabled
     {
         get => _enabled;

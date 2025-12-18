@@ -28,11 +28,11 @@ public partial class NodeComponentsInspector : EditorInspectorPlugin
         // };
 
         var popup = new PopupMenu();
-        popup.AddItem("Reset", 0);
+        popup.AddItem("Reset ", 0);
         popup.AddSeparator();
-        popup.AddItem("Remove Component", 1);
-        popup.AddItem("Move Up", 2);
-        popup.AddItem("Move Down", 3);
+        popup.AddItem("Remove Component ", 1);
+        popup.AddItem("Move Up ", 2);
+        popup.AddItem("Move Down ", 3);
 
         popup.IdPressed += _ContextMeenu_IdPressed;
 
