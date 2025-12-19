@@ -12,6 +12,8 @@ public abstract class BaseComponent
     [JsonIgnore]
     public Node Owner => _owner;
     [JsonIgnore]
+    public Node Node => _owner;
+    [JsonIgnore]
     private bool _enabled = true;
     [JsonIgnore]
     public bool Enabled

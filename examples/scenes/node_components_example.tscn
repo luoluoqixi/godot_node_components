@@ -1,6 +1,7 @@
 [gd_scene format=3 uid="uid://c8sepqvo5e1p8"]
 
 [ext_resource type="Script" uid="uid://by41yomehcf2p" path="res://addons/godot_node_components/runtime/node/NodeComponents.cs" id="1_oa1gj"]
+[ext_resource type="Script" uid="uid://bcpppoj27e7xc" path="res://addons/godot_node_components/runtime/node/Node3DComponents.cs" id="2_oa1gj"]
 
 [node name="Node3D" type="Node3D" unique_id=132343331]
 
@@ -9,10 +10,12 @@ script = ExtResource("1_oa1gj")
 metadata/node_components = PackedStringArray("GodotNodeComponents.Examples.ExampleComponent|{}")
 
 [node name="Node3D" type="Node3D" parent="." unique_id=1364689862]
+script = ExtResource("2_oa1gj")
+metadata/node_components = PackedStringArray("GodotNodeComponents.Examples.ExampleComponent|{}")
+
+[node name="CSGBox3D" type="CSGBox3D" parent="Node3D" unique_id=1798738211]
 
 [node name="DirectionalLight3D" type="DirectionalLight3D" parent="." unique_id=1150814281]
 
 [node name="Camera3D" type="Camera3D" parent="." unique_id=854371401]
 transform = Transform3D(1, 0, 0, 0, 0.961521, 0.27473128, 0, -0.27473128, 0.961521, 0, 0.6665467, 1.932935)
-
-[node name="CSGBox3D" type="CSGBox3D" parent="." unique_id=1798738211]
