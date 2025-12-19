@@ -202,6 +202,42 @@ public partial class ComponentsController : IDisposable
         return _components[index];
     }
 
+    public BaseComponent RemoveComponentAt(int index)
+    {
+        if (_components == null)
+            return null;
+        if (index < 0 || index >= _components.Count)
+            return null;
+        var component = _components[index];
+        if (component == null)
+            return null;
+        try
+        {
+            if (component.Enabled)
+            {
+                component.Enabled = false;
+            }
+            component.OnDestroy();
+        }
+        catch (Exception e)
+        {
+            GD.PrintErr($"Node {_owner.Name}, failed to destroy component {component.GetType().FullName}: {e}");
+        }
+        _components.RemoveAt(index);
+        return component;
+    }
+
+    public bool RemoveComponent(BaseComponent component)
+    {
+        if (_components == null)
+            return false;
+        int index = _components.IndexOf(component);
+        if (index < 0)
+            return false;
+        RemoveComponentAt(index);
+        return true;
+    }
+
     private void _InitComponents()
     {
         var data = _componentsInterface.LoadComponents();
@@ -300,23 +336,76 @@ public partial class ComponentsController : IDisposable
 
     internal void RevertComponentsFromData(string[] data)
     {
-        _LoadComponentsFromData(data, false);
+        _LoadComponentsFromData(data);
+    }
+
+    internal void ResetComponent(int index)
+    {
+        if (_components == null)
+            return;
+        if (index < 0 || index >= _components.Count)
+            return;
+        var component = _components[index];
+        if (component == null)
+            return;
+        var type = component.GetType();
+        var newComponent = (BaseComponent)Activator.CreateInstance(type);
+        if (newComponent == null)
+        {
+            throw new Exception($"Failed to create component of type {type.FullName}");
+        }
+        _components[index] = newComponent;
+        _OnComponentCreate(newComponent);
+    }
+
+    private void _SwapComponents(int indexA, int indexB)
+    {
+        if (_components == null)
+            return;
+        if (indexA < 0 || indexA >= _components.Count)
+            return;
+        if (indexB < 0 || indexB >= _components.Count)
+            return;
+        var temp = _components[indexA];
+        _components[indexA] = _components[indexB];
+        _components[indexB] = temp;
+    }
+
+    internal void MoveUpComponent(int index)
+    {
+        if (_components == null)
+            return;
+        if (index <= 0 || index >= _components.Count)
+            return;
+        _SwapComponents(index, index - 1);
+    }
+
+    internal void MoveDownComponent(int index)
+    {
+        if (_components == null)
+            return;
+        if (index < 0 || index >= _components.Count - 1)
+            return;
+        _SwapComponents(index, index + 1);
     }
 
     protected void _OnComponentCreate(BaseComponent component)
     {
         component._SetOwner(_owner);
-        try
+        if (!Engine.IsEditorHint())
         {
-            component.Awake();
-            if (component.Enabled)
+            try
             {
-                component.OnEnable();
+                component.Awake();
+                if (component.Enabled)
+                {
+                    component.OnEnable();
+                }
             }
-        }
-        catch (Exception e)
-        {
-            GD.PrintErr($"Node {_owner.Name}, failed to initialize component {component.GetType().FullName}: {e}");
+            catch (Exception e)
+            {
+                GD.PrintErr($"Node {_owner.Name}, failed to initialize component {component.GetType().FullName}: {e}");
+            }
         }
     }
 
@@ -344,7 +433,7 @@ public partial class ComponentsController : IDisposable
         return data;
     }
 
-    protected virtual void _LoadComponentsFromData(string[] data, bool invokeCreateEvent = true)
+    protected virtual void _LoadComponentsFromData(string[] data)
     {
         if (data == null)
         {
@@ -362,7 +451,7 @@ public partial class ComponentsController : IDisposable
                 _components.Add(component);
                 if (component != null)
                 {
-                    if (invokeCreateEvent)
+                    if (!Engine.IsEditorHint())
                     {
                         _OnComponentCreate(component);
                     }

@@ -36,7 +36,7 @@ public partial class NodeComponentsInspector : EditorInspectorPlugin
         popup.AddItem("Move Up ", 2);
         popup.AddItem("Move Down ", 3);
 
-        popup.IdPressed += _ContextMeenu_IdPressed;
+        popup.IdPressed += (id) => _ContextMeenu_IdPressed(id, index);
 
         var group = EditorGUIUtility.DrawCollapsibleGroup(typeName, 1, popup, saveKey);
         section.AddChild(group);
@@ -87,9 +87,189 @@ public partial class NodeComponentsInspector : EditorInspectorPlugin
         AddCustomControl(section);
     }
 
-    private void _ContextMeenu_IdPressed(long id)
+    private void _ResetComponent(ComponentsController cc, Node node, int index, UndoRedo undoRedo)
     {
-        GD.Print("Context menu item pressed: " + id);
+        string nodeName = node.Name;
+
+        var oldData = cc.GetComponentsToData();
+        undoRedo.CreateAction("Reset Component " + nodeName + ": " + index);
+
+        // https://github.com/godotengine/godot/issues/90430
+        var command = new UndoRedoCommand();
+        command.AddDoMethod(() =>
+        {
+            if (cc == null) return;
+            if (node == null) return;
+            if (!IsInstanceValid(node)) return;
+
+            cc.ResetComponent(index);
+            cc.ApplyComponents();
+            node.NotifyPropertyListChanged();
+
+            EditorGUIUtility.MarkSceneAsUnsaved();
+        });
+        command.AddUndoMethod(() =>
+        {
+            if (cc == null) return;
+            if (node == null) return;
+            if (!IsInstanceValid(node)) return;
+
+            cc.RevertComponentsFromData(oldData);
+            cc.ApplyComponents();
+            node.NotifyPropertyListChanged();
+
+            EditorGUIUtility.MarkSceneAsUnsaved();
+        });
+        command.AddToUndoRedo(undoRedo);
+        undoRedo.CommitAction();
+    }
+
+    private void _MoveUpComponent(ComponentsController cc, Node node, int index, UndoRedo undoRedo)
+    {
+        string nodeName = node.Name;
+
+        var oldData = cc.GetComponentsToData();
+        undoRedo.CreateAction("MoveUp Component " + nodeName + ": " + index);
+
+        // https://github.com/godotengine/godot/issues/90430
+        var command = new UndoRedoCommand();
+        command.AddDoMethod(() =>
+        {
+            if (cc == null) return;
+            if (node == null) return;
+            if (!IsInstanceValid(node)) return;
+
+            cc.MoveUpComponent(index);
+            cc.ApplyComponents();
+            node.NotifyPropertyListChanged();
+
+            EditorGUIUtility.MarkSceneAsUnsaved();
+        });
+        command.AddUndoMethod(() =>
+        {
+            if (cc == null) return;
+            if (node == null) return;
+            if (!IsInstanceValid(node)) return;
+
+            cc.RevertComponentsFromData(oldData);
+            cc.ApplyComponents();
+            node.NotifyPropertyListChanged();
+
+            EditorGUIUtility.MarkSceneAsUnsaved();
+        });
+        command.AddToUndoRedo(undoRedo);
+        undoRedo.CommitAction();
+    }
+
+    private void _MoveDownComponent(ComponentsController cc, Node node, int index, UndoRedo undoRedo)
+    {
+        string nodeName = node.Name;
+
+        var oldData = cc.GetComponentsToData();
+        undoRedo.CreateAction("MoveDown Component " + nodeName + ": " + index);
+
+        // https://github.com/godotengine/godot/issues/90430
+        var command = new UndoRedoCommand();
+        command.AddDoMethod(() =>
+        {
+            if (cc == null) return;
+            if (node == null) return;
+            if (!IsInstanceValid(node)) return;
+
+            cc.MoveDownComponent(index);
+            cc.ApplyComponents();
+            node.NotifyPropertyListChanged();
+
+            EditorGUIUtility.MarkSceneAsUnsaved();
+        });
+        command.AddUndoMethod(() =>
+        {
+            if (cc == null) return;
+            if (node == null) return;
+            if (!IsInstanceValid(node)) return;
+
+            cc.RevertComponentsFromData(oldData);
+            cc.ApplyComponents();
+            node.NotifyPropertyListChanged();
+
+            EditorGUIUtility.MarkSceneAsUnsaved();
+        });
+        command.AddToUndoRedo(undoRedo);
+        undoRedo.CommitAction();
+    }
+
+    private void _RemoveComponent(ComponentsController cc, Node node, int index, UndoRedo undoRedo)
+    {
+        string nodeName = node.Name;
+
+        var oldData = cc.GetComponentsToData();
+        undoRedo.CreateAction("Remove Component " + nodeName + ": " + index);
+
+        // https://github.com/godotengine/godot/issues/90430
+        var command = new UndoRedoCommand();
+        command.AddDoMethod(() =>
+        {
+            if (cc == null) return;
+            if (node == null) return;
+            if (!IsInstanceValid(node)) return;
+
+            cc.RemoveComponentAt(index);
+            cc.ApplyComponents();
+            node.NotifyPropertyListChanged();
+
+            EditorGUIUtility.MarkSceneAsUnsaved();
+        });
+        command.AddUndoMethod(() =>
+        {
+            if (cc == null) return;
+            if (node == null) return;
+            if (!IsInstanceValid(node)) return;
+
+            cc.RevertComponentsFromData(oldData);
+            cc.ApplyComponents();
+            node.NotifyPropertyListChanged();
+
+            EditorGUIUtility.MarkSceneAsUnsaved();
+        });
+        command.AddToUndoRedo(undoRedo);
+        undoRedo.CommitAction();
+    }
+
+    private void _ContextMeenu_IdPressed(long id, int index)
+    {
+        if (currentObject == null) return;
+        if (currentObject is not IComponents) return;
+
+        var componentsController = (currentObject as IComponents).Components;
+        if (componentsController == null) return;
+
+        var node = componentsController.Owner;
+        if (node == null) return;
+        if (!IsInstanceValid(node)) return;
+
+        var undoRedo = EditorGUIUtility.GetUndoRedo();
+        if (undoRedo == null) return;
+
+        if (id == 0)
+        {
+            // Reset
+            _ResetComponent(componentsController, node, index, undoRedo);
+        }
+        else if (id == 1)
+        {
+            // Remove Component
+            _RemoveComponent(componentsController, node, index, undoRedo);
+        }
+        else if (id == 2)
+        {
+            // Move Up
+            _MoveUpComponent(componentsController, node, index, undoRedo);
+        }
+        else if (id == 3)
+        {
+            // Move Down
+            _MoveDownComponent(componentsController, node, index, undoRedo);
+        }
     }
 
     private void _DoAddComponent(string typeName)
@@ -128,6 +308,8 @@ public partial class NodeComponentsInspector : EditorInspectorPlugin
             componentsController.AddComponent(componentType);
             componentsController.ApplyComponents();
             node.NotifyPropertyListChanged();
+
+            EditorGUIUtility.MarkSceneAsUnsaved();
         });
         command.AddUndoMethod(() =>
         {
@@ -139,6 +321,8 @@ public partial class NodeComponentsInspector : EditorInspectorPlugin
             componentsController.RevertComponentsFromData(oldData);
             componentsController.ApplyComponents();
             node.NotifyPropertyListChanged();
+
+            EditorGUIUtility.MarkSceneAsUnsaved();
         });
         command.AddToUndoRedo(undoRedo);
         undoRedo.CommitAction();

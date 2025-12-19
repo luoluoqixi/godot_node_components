@@ -6,6 +6,6 @@
 
 [node name="NodeComponents" type="Node" parent="." unique_id=702155791]
 script = ExtResource("1_oa1gj")
-metadata/node_components = PackedStringArray("GodotNodeComponents.SimpleComponent|{}", "GodotNodeComponents.SimpleComponent|{}")
+metadata/node_components = PackedStringArray("GodotNodeComponents.Examples.ExampleComponent|{}", "GodotNodeComponents.SimpleComponent|{}", "GodotNodeComponents.SimpleComponent|{}")
 
 [node name="Node3D" type="Node3D" parent="." unique_id=1364689862]
