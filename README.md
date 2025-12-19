@@ -21,7 +21,7 @@ Attach the `NodeComponents` component to a Node, click "Add Component", select t
 
 Example implementation of the `ExampleComponent`:
 
-```
+```csharp
 public class ExampleComponent : BaseComponent
 {
     public override void Awake()
@@ -45,7 +45,7 @@ When using other node types, such as `Node3D`, you should use the corresponding 
 
 If you need more types, you can implement them yourself by inheriting the corresponding class (Godot uses the base class to attach to the Node and cannot access the original Node's type. [See details](https://github.com/godotengine/godot/issues/11980)). For example, for `Sprite2D`：
 
-```
+```csharp
 [Tool]
 public partial class Sprite2DComponents : Sprite2D, IComponents
 {
@@ -105,7 +105,7 @@ public partial class Sprite2DComponents : Sprite2D, IComponents
 
 The Components data is serialized into Json, stored in a `string[]`, and then saved in the node's Meta data, where it is restored at runtime.
 
-```
+```csharp
 public static void SaveComponentsToMeta(this Node node, string[] data)
 {
     node.SetMeta(ComponentsConfig.ComponentsMetaKey, data);
