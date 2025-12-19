@@ -81,6 +81,7 @@ public partial class ComponentsController : IDisposable
 
     public void Dispose()
     {
+        _DestroyComponents();
         _components = null;
         _componentsInterface = null;
         _owner = null;
@@ -248,20 +249,23 @@ public partial class ComponentsController : IDisposable
     {
         if (_components == null)
             return;
-        foreach (var component in _components)
+        if (!Engine.IsEditorHint())
         {
-            if (component == null) continue;
-            try
+            foreach (var component in _components)
             {
-                if (component.Enabled)
+                if (component == null) continue;
+                try
                 {
-                    component.Enabled = false;
+                    if (component.Enabled)
+                    {
+                        component.Enabled = false;
+                    }
+                    component.OnDestroy();
                 }
-                component.OnDestroy();
-            }
-            catch (Exception e)
-            {
-                GD.PrintErr($"Node {_owner.Name}, failed to destroy component {component.GetType().FullName}: {e}");
+                catch (Exception e)
+                {
+                    GD.PrintErr($"Node {_owner.Name}, failed to destroy component {component.GetType().FullName}: {e}");
+                }
             }
         }
         _components.Clear();
@@ -272,16 +276,19 @@ public partial class ComponentsController : IDisposable
     {
         if (_components == null)
             return;
-        foreach (var component in _components)
+        if (!Engine.IsEditorHint())
         {
-            if (component == null) continue;
-            try
+            foreach (var component in _components)
             {
-                component.Start();
-            }
-            catch (Exception e)
-            {
-                GD.PrintErr($"Node {_owner.Name}, failed to start component {component.GetType().FullName}: {e}");
+                if (component == null) continue;
+                try
+                {
+                    component.Start();
+                }
+                catch (Exception e)
+                {
+                    GD.PrintErr($"Node {_owner.Name}, failed to start component {component.GetType().FullName}: {e}");
+                }
             }
         }
     }
@@ -290,16 +297,19 @@ public partial class ComponentsController : IDisposable
     {
         if (_components == null)
             return;
-        foreach (var component in _components)
+        if (!Engine.IsEditorHint())
         {
-            if (component == null) continue;
-            try
+            foreach (var component in _components)
             {
-                component.Update(delta);
-            }
-            catch (Exception e)
-            {
-                GD.PrintErr($"Node {_owner.Name}, failed to update component {component.GetType().FullName}: {e}");
+                if (component == null) continue;
+                try
+                {
+                    component.Update(delta);
+                }
+                catch (Exception e)
+                {
+                    GD.PrintErr($"Node {_owner.Name}, failed to update component {component.GetType().FullName}: {e}");
+                }
             }
         }
     }
@@ -308,16 +318,19 @@ public partial class ComponentsController : IDisposable
     {
         if (_components == null)
             return;
-        foreach (var component in _components)
+        if (!Engine.IsEditorHint())
         {
-            if (component == null) continue;
-            try
+            foreach (var component in _components)
             {
-                component.FixedUpdate(delta);
-            }
-            catch (Exception e)
-            {
-                GD.PrintErr($"Node {_owner.Name}, failed to fixed update component {component.GetType().FullName}: {e}");
+                if (component == null) continue;
+                try
+                {
+                    component.FixedUpdate(delta);
+                }
+                catch (Exception e)
+                {
+                    GD.PrintErr($"Node {_owner.Name}, failed to fixed update component {component.GetType().FullName}: {e}");
+                }
             }
         }
     }
