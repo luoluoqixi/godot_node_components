@@ -106,5 +106,23 @@ internal static class CommonAttributeUtility
         var type = obj.GetType();
         return type.GetProperty(propertyName, BindingFlags.Public | BindingFlags.Instance | BindingFlags.FlattenHierarchy);
     }
+    public static string[] GetAllTypeNames(Type type)
+    {
+        var typeNames = new List<string>();
+        var assembly = Assembly.GetAssembly(type);
+        var types = assembly.GetTypes();
+        foreach (var t in types)
+        {
+            if (t.IsClass && !t.IsAbstract && type.IsAssignableFrom(t))
+            {
+                typeNames.Add(t.FullName);
+            }
+        }
+        return typeNames.ToArray();
+    }
+    public static string[] GetAllTypeNames<T>()
+    {
+        return GetAllTypeNames(typeof(T));
+    }
 }
 #endif

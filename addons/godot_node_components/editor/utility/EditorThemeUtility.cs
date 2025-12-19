@@ -29,6 +29,12 @@ internal static class EditorThemeUtility
     {
         return GetControl().GetThemeColor(name, type);
     }
+    public static StyleBox GetBgStyleboxFlat(StringName name, StringName type)
+    {
+        var s = new StyleBoxFlat();
+        s.BgColor = GetColor(name, type);
+        return s;
+    }
     public static StyleBox GetStylebox(StringName name, StringName type)
     {
         return GetControl().GetThemeStylebox(name, type);

@@ -6,6 +6,49 @@ namespace GodotNodeComponents.Editor;
 
 internal static class EditorGUIUtility
 {
+    public static Window OpenPopupWindow(string title, Vector2I size, Action<VBoxContainer> drawContent)
+    {
+        var popup = new Window();
+        float scaleFactor = DisplayServer.ScreenGetDpi() / 96.0f;
+        size = new Vector2I((int)(size.X * scaleFactor), (int)(size.Y * scaleFactor));
+        popup.InitialPosition = Window.WindowInitialPosition.CenterPrimaryScreen;
+        popup.Size = size;
+        popup.Exclusive = false;
+        popup.Borderless = false;
+        popup.TransparentBg = false;
+        popup.Title = title;
+        popup.Theme = EditorInterface.Singleton.GetBaseControl().Theme;
+        {
+            var container = new PanelContainer();
+            container.SizeFlagsHorizontal = Control.SizeFlags.ExpandFill;
+            container.SizeFlagsVertical = Control.SizeFlags.ExpandFill;
+            container.SetAnchorsPreset(Control.LayoutPreset.FullRect);
+            container.AddThemeStyleboxOverride("panel", EditorThemeUtility.GetBgStyleboxFlat("base_color", "Editor"));
+            {
+                var marginContainer = new MarginContainer();
+                int marginValue = 10;
+                marginContainer.AddThemeConstantOverride("margin_top", marginValue);
+                marginContainer.AddThemeConstantOverride("margin_left", marginValue);
+                marginContainer.AddThemeConstantOverride("margin_bottom", marginValue);
+                marginContainer.AddThemeConstantOverride("margin_right", marginValue);
+                {
+                    var vbox = new VBoxContainer();
+                    drawContent(vbox);
+                    marginContainer.AddChild(vbox);
+                }
+                container.AddChild(marginContainer);
+            }
+            popup.AddChild(container);
+        }
+        popup.CloseRequested += () =>
+        {
+            popup.QueueFree();
+        };
+
+        EditorInterface.Singleton.PopupDialog(popup);
+        return popup;
+    }
+
     public static VBoxContainer DrawCollapsibleGroup(string title, int level = 1, PopupMenu contextMenu = null, string savePath = null)
     {
         var group = new VBoxContainer();
@@ -95,10 +138,13 @@ internal static class EditorGUIUtility
         return headerContainer;
     }
 
-    public static Button DrawButton(string text, Texture2D icon = null, Action onPressed = null)
+    public static Button DrawButton(string text, Texture2D icon = null, Action onPressed = null, bool expandHorizontal = false)
     {
         var addComponent = new Button();
-        addComponent.SizeFlagsHorizontal = Control.SizeFlags.ShrinkCenter;
+        if (!expandHorizontal)
+        {
+            addComponent.SizeFlagsHorizontal = Control.SizeFlags.ShrinkCenter;
+        }
         addComponent.Text = text;
         if (icon != null)
         {

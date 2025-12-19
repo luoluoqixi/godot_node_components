@@ -1,4 +1,6 @@
 #if TOOLS
+using System;
+using System.Linq;
 using Godot;
 
 namespace GodotNodeComponents.Editor;
@@ -90,7 +92,7 @@ public partial class NodeComponentsInspector : EditorInspectorPlugin
         GD.Print("Context menu item pressed: " + id);
     }
 
-    private void _OnAddComponentPressed()
+    private void _DoAddComponent(string typeName)
     {
         if (currentObject == null) return;
         if (currentObject is not IComponents) return;
@@ -105,7 +107,7 @@ public partial class NodeComponentsInspector : EditorInspectorPlugin
         var undoRedo = EditorGUIUtility.GetUndoRedo();
         if (undoRedo == null) return;
 
-        var componentType = typeof(SimpleComponent);
+        var componentType = Type.GetType(typeName);
         if (componentType == null) return;
 
         string nodeName = node.Name;
@@ -140,6 +142,67 @@ public partial class NodeComponentsInspector : EditorInspectorPlugin
         });
         command.AddToUndoRedo(undoRedo);
         undoRedo.CommitAction();
+    }
+
+    private void _OnAddComponentPressed()
+    {
+        var typeNames = CommonAttributeUtility.GetAllTypeNames<BaseComponent>();
+        Window window = null;
+        window = EditorGUIUtility.OpenPopupWindow("Add Component", new Vector2I(800, 600), (vbox) =>
+        {
+            {
+                var input = new LineEdit();
+                input.PlaceholderText = "Search...";
+                input.ClearButtonEnabled = true;
+                input.TreeEntered += () =>
+                {
+                    if (input.IsInsideTree())
+                        input.GrabFocus();
+                };
+                vbox.AddChild(input);
+            }
+
+            int count = typeNames.Length;
+            var tree = new Tree();
+            tree.HideRoot = true;
+            var root = tree.CreateItem();
+
+            tree.SetAnchorsPreset(Control.LayoutPreset.FullRect);
+            tree.SizeFlagsHorizontal = Control.SizeFlags.ExpandFill;
+            tree.SizeFlagsVertical = Control.SizeFlags.ExpandFill;
+            tree.SelectMode = Tree.SelectModeEnum.Single;
+            tree.AddThemeFontOverride("font", EditorThemeUtility.GetFont("bold", "EditorFonts"));
+            tree.AddThemeFontSizeOverride("font_size", EditorThemeUtility.GetFontSize("bold_size", "EditorFonts"));
+            tree.AddThemeColorOverride("font_color", EditorThemeUtility.GetColor("font_color", "Tree"));
+            for (var i = 0; i < count; i++)
+            {
+                var item = tree.CreateItem(root);
+                var fullName = typeNames[i];
+                item.SetText(0, "\n" + fullName + "\n\n");
+                item.SetMeta("value", fullName);
+            }
+            vbox.AddChild(tree);
+            if (count > 0)
+            {
+                root.GetChild(0).Select(0);
+            }
+
+            {
+                var addComponent = EditorGUIUtility.DrawButton("Ok", null, () =>
+                {
+                    if (tree == null) return;
+                    if (!tree.IsInsideTree()) return;
+                    var select = tree.GetSelected();
+                    var value = select.GetMeta("value");
+                    _DoAddComponent(value.AsString());
+                    if (window != null && window.IsInsideTree())
+                    {
+                        window.QueueFree();
+                    }
+                }, true);
+                vbox.AddChild(addComponent);
+            }
+        });
     }
 }
 #endif
