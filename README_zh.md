@@ -21,7 +21,7 @@
 
 `ExampleComponent` 示例组件实现：
 
-```
+```csharp
 public class ExampleComponent : BaseComponent
 {
     public override void Awake()
@@ -45,7 +45,7 @@ public class ExampleComponent : BaseComponent
 
 需要更多类型可以自己继承对应的 class 实现（Godot 使用基类挂载到 Node，无法访问原始 Node 的类型，[详情查看](https://github.com/godotengine/godot/issues/11980)），如 `Sprite2D`：
 
-```
+```csharp
 [Tool]
 public partial class Sprite2DComponents : Sprite2D, IComponents
 {
@@ -105,7 +105,7 @@ public partial class Sprite2DComponents : Sprite2D, IComponents
 
 将 Components 数据序列化为 Json 保存在 string[] 中，然后存储在节点的 Meta 元数据中，在运行时还原。
 
-```
+```csharp
 public static void SaveComponentsToMeta(this Node node, string[] data)
 {
     node.SetMeta(ComponentsConfig.ComponentsMetaKey, data);
